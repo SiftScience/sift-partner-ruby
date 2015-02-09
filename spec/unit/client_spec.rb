@@ -3,6 +3,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "spec_helper"))
 describe SiftPartner::Client do
   partner_id = "65653548"
   partner_api_key = "98463454389754"
+  site_url = "merchant123.com"
+  site_email = "owner@merchant123.com"
+  analyst_email = "analyst+merchant123@partner.com"
+  password = "s0m3l0ngp455w0rd"
+
   expected_account_body = {
       "account_id" => "1234567890abcdef",
       "production" => {
@@ -39,11 +44,63 @@ describe SiftPartner::Client do
       }
     }
 
+  it "Cannot instantiate client with nil, empty, or non-string api key" do
+    lambda { Sift::Client.new(nil, partner_id) }.should raise_error
+    lambda { Sift::Client.new("", partner_id) }.should raise_error
+    lambda { Sift::Client.new(123456, partner_id) }.should raise_error
+  end
+
+  it "Cannot instantiate client with nil, empty, or non-string partner id" do
+    lambda { Sift::Client.new(partner_api_key, nil) }.should raise_error
+    lambda { Sift::Client.new(partner_api_key, "") }.should raise_error
+    lambda { Sift::Client.new(partner_api_key, 123456) }.should raise_error
+  end
+
+  it "Can instantiate client with blank api key if Sift.api_key set" do
+    lambda { Sift::Client.new(partner_api_key, partner_id) }.should_not raise_error
+  end
+
+  it "account creation fails with nil, empty, or non-string site url" do
+    partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
+    lambda { partner_client.new_account(nil, site_email, analyst_email,
+      password) }.should raise_error
+    lambda { partner_client.new_account("", site_email, analyst_email,
+      password) }.should raise_error
+    lambda { partner_client.new_account(12345, site_email, analyst_email,
+      password) }.should raise_error
+  end
+
+  it "account creation fails with nil, empty, or non-string site email" do
+    partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
+    lambda { partner_client.new_account(site_url, nil, analyst_email,
+      password) }.should raise_error
+    lambda { partner_client.new_account(site_url, "", analyst_email,
+      password) }.should raise_error
+    lambda { partner_client.new_account(site_url, 12345, analyst_email,
+      password) }.should raise_error
+  end
+
+  it "account creation fails with nil, empty, or non-string analyst email" do
+    partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
+    lambda { partner_client.new_account(site_url, site_email, nil,
+      password) }.should raise_error
+    lambda { partner_client.new_account(site_url, site_email, "",
+      password) }.should raise_error
+    lambda { partner_client.new_account(site_url, site_email, 12345,
+      password) }.should raise_error
+  end
+
+  it "account creation fails with nil, empty, or non-string password" do
+    partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
+    lambda { partner_client.new_account(site_url, site_email, analyst_email,
+     nil) }.should raise_error
+    lambda { partner_client.new_account(site_url, site_email, analyst_email,
+     "") }.should raise_error
+    lambda { partner_client.new_account(site_url, site_email, analyst_email,
+     12345) }.should raise_error
+  end
+
   it "should march through create acct flow" do
-    site_url = "merchant123.com"
-    site_email = "owner@merchant123.com"
-    analyst_email = "analyst+merchant123@partner.com"
-    password = "s0m3l0ngp455w0rd"
     # when we receive the mocked url, it will include the basic auth header encoded
     # and regurgitated before the host name
     stub_request(:post, /https:\/\/.*\@partner\.siftscience\.com\/v3\/partners\/#{partner_id}\/accounts/).
@@ -80,6 +137,14 @@ describe SiftPartner::Client do
       response = partner_client.get_accounts()
       response.should_not be_nil
       response["totalResults"].should eq(1)
+  end
+
+  
+
+  it "config update fails with nil, or non-hash notification threshold" do
+    partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
+    lambda { partner_client.update_notification_config(nil) }.should raise_error
+    lambda { partner_client.update_notification_config("not_a_hash") }.should raise_error
   end
 
   it "should work through config update flow" do

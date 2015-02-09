@@ -22,6 +22,8 @@ module SiftPartner
     #   The account id of the partner
     #   (which may be found in the settings page of the console)
     def initialize(api_key = Sift.api_key, id = Sift.account_id)
+      raise("api_key must be a non-empty string") unless valid_string?(api_key)
+      raise("partner must be a non-empty string") unless valid_string?(id)
       @api_key = api_key
       @id = id
     end
@@ -40,6 +42,12 @@ module SiftPartner
     # When successful, returns a including the new account id and credentials.
     # When an error occurs, returns nil.
     def new_account(site_url, site_email, analyst_email, password)
+
+      raise("site url must be a non-empty string") unless valid_string?(site_url)
+      raise("site email must be a non-empty string") unless valid_string?(site_email)
+      raise("analyst email must be a non-empty string") unless valid_string?(analyst_email)
+      raise("password must be a non-empty string") unless valid_string?(password)
+
       reqBody = {:site_url => site_url, :site_email => site_email,
                  :analyst_email => analyst_email, :password => password}
       begin
@@ -70,7 +78,10 @@ module SiftPartner
     #   The value of the notification_url will be a url containing the string '%s' exactly once.
     #   This allows the url to be used as a template, into which a merchant account id can be substituted.
     #   The  notification threshold should be a floating point number between 0.0 and 1.0
-    def update_notification_config(cfg)
+    def update_notification_config(cfg = nil)
+
+      raise("configuration must be a hash") unless cfg.is_a? Hash
+
       http_put(notification_config_url(), cfg)
     end
 
@@ -126,6 +137,10 @@ module SiftPartner
                   "User-Agent" => user_agent}
         http_response = HTTParty.post(uri, :body => bodyObj.to_json, :headers => header)
         safe_json(http_response)
+      end
+
+      def valid_string?(s)
+        s.is_a?(String) && !s.empty?
       end
   end
 end
