@@ -1,4 +1,4 @@
-= Sift Science Partner Ruby bindings
+= Sift Science Partner Ruby bindings {<img src="https://travis-ci.org/SiftScience/sift-partner-ruby.png?branch=master" alt="Build Status" />}[https://travis-ci.org/SiftScience/sift-partner-ruby]
 
 == Requirements
 
