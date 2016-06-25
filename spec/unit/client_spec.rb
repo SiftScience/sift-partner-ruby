@@ -123,7 +123,26 @@ describe SiftPartner::Client do
     end
 
   it "should march through account listing flow" do
-    stub_request(:get, /https:\/\/.*partner\.siftscience\.com\/v3\/partners\/#{partner_id}\/accounts/).
+    stub_request(:get, /https:\/\/.*partner\.siftscience\.com\/v3\/partners\/#{partner_id}\/accounts\z/).
+      to_return(
+        {:body =>
+          { "type" => "partner_account", "data" => [expected_account_body.to_json],
+            "hasMore" => true,
+            "nextRef" => "https://partner.siftscience.com/v3/partners/#{partner_id}/accounts?afterId=1234567890abcdef",
+            "totalResults" => 2}.to_json,
+         :status => 200,
+         :headers => {}}
+      )
+      partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
+      response = partner_client.get_accounts()
+      response.should_not be_nil
+      response["nextRef"].should_not be_nil
+      response["hasMore"].should be_truthy
+      response["totalResults"].should eq(2)
+      next_ref = response["nextRef"]
+
+    expected_account_body["account_id"] = "1234567890abcdff"
+    stub_request(:get, /https:\/\/.*partner\.siftscience\.com\/v3\/partners\/#{partner_id}\/accounts\?afterId=1234567890abcdef/).
       to_return(
         {:body =>
           { "type" => "partner_account", "data" => [expected_account_body.to_json],
@@ -133,9 +152,10 @@ describe SiftPartner::Client do
          :status => 200,
          :headers => {}}
       )
-      partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
-      response = partner_client.get_accounts()
+      response = partner_client.get_accounts(next_ref)
       response.should_not be_nil
+      response["hasMore"].should be_falsey
+      response["nextRef"].should be_nil
       response["totalResults"].should eq(1)
   end
 
