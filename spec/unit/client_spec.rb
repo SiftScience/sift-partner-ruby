@@ -140,7 +140,7 @@ describe SiftPartner::Client do
           { "type" => "partner_account", "data" => [expected_account_body.to_json],
             "hasMore" => false,
             "nextRef" => nil,
-            "totalResults" => 1}.to_json,
+            "totalResults" => 2}.to_json,
          :status => 200,
          :headers => {}}
       )
@@ -156,7 +156,7 @@ describe SiftPartner::Client do
       response.should_not be_nil
       response["hasMore"].should be_falsey
       response["nextRef"].should be_nil
-      response["totalResults"].should eq(1)
+      response["totalResults"].should eq(2)
   end
 
   
