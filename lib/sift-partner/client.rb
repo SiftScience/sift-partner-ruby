@@ -59,14 +59,17 @@ module SiftPartner
 
     end
 
-    # Gets a listing of the ids and keys for all merchant accounts that have
-    # been created by this partner.
+    # Gets a listing of the ids and keys for merchant accounts that have
+    # been created by this partner. This will return up to 100 results
+    # at a time.
     #
     # When successful, returns a hash including the key :data, which is an
     # array of account descriptions. (Each element has the same structure as a
-    # single response from new_account).
-    def get_accounts()
-      http_get(accounts_url)
+    # single response from new_account).  If the key :has_more is true, then
+    # pass the :next_ref value into this function again to get the next set
+    # of results.
+    def get_accounts(next_ref = nil)
+      http_get(next_ref ? next_ref : accounts_url)
     end
 
     # Updates the configuration which controls http notifications for all merchant
