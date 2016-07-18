@@ -39,8 +39,7 @@ module SiftPartner
     # password
     #    password (at least 10 chars) to be used to sign into the Console
     #
-    # When successful, returns a including the new account id and credentials.
-    # When an error occurs, returns nil.
+    # Returns a Sift::Response object
     def new_account(site_url, site_email, analyst_email, password)
 
       raise("site url must be a non-empty string") unless valid_string?(site_url)
@@ -101,18 +100,12 @@ module SiftPartner
         URI("#{API_ENDPOINT}/accounts/#{@id}/config")
       end
 
-      def safe_json(http_response)
+      def sift_response(http_response)
         response = Sift::Response.new(
           http_response.body,
           http_response.code,
           http_response.response
         )
-        if !response.nil? and response.ok?
-          response.json
-        else
-          puts "bad value in safeJson :"
-          PP.pp(response)
-        end
       end
 
       def prep_https(uri)
@@ -126,7 +119,7 @@ module SiftPartner
                     "User-Agent" => user_agent}
 
         http_response = HTTParty.get(uri, :headers =>header)
-        safe_json(http_response)
+        sift_response(http_response)
       end
 
       def http_put(uri, bodyObj)
@@ -135,7 +128,7 @@ module SiftPartner
                   "User-Agent" => user_agent}
 
         http_response = HTTParty.put(uri, :body => bodyObj.to_json, :headers => header)
-        safe_json(http_response)
+        sift_response(http_response)
       end
 
       def http_post(uri, bodyObj)
@@ -143,7 +136,7 @@ module SiftPartner
                   "Authorization" => "Basic #{@api_key}",
                   "User-Agent" => user_agent}
         http_response = HTTParty.post(uri, :body => bodyObj.to_json, :headers => header)
-        safe_json(http_response)
+        sift_response(http_response)
       end
 
       def valid_string?(s)
