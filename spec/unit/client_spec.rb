@@ -119,8 +119,8 @@ describe SiftPartner::Client do
       response = partner_client.new_account(site_url, site_email, analyst_email,
       password)
       response.should_not be_nil
-      response["production"]["api_keys"][0]["state"].should eq("ACTIVE")
-    end
+      response.body["production"]["api_keys"][0]["state"].should eq("ACTIVE")
+  end
 
   it "should march through account listing flow" do
     stub_request(:get, /https:\/\/.*partner\.siftscience\.com\/v3\/partners\/#{partner_id}\/accounts\z/).
@@ -147,16 +147,16 @@ describe SiftPartner::Client do
       partner_client = SiftPartner::Client.new(partner_api_key, partner_id)
       response = partner_client.get_accounts()
       response.should_not be_nil
-      response["nextRef"].should_not be_nil
-      response["hasMore"].should be_truthy
-      response["totalResults"].should eq(2)
-      next_ref = response["nextRef"]
+      response.body["nextRef"].should_not be_nil
+      response.body["hasMore"].should be_truthy
+      response.body["totalResults"].should eq(2)
+      next_ref = response.body["nextRef"]
 
       response = partner_client.get_accounts(next_ref)
       response.should_not be_nil
-      response["hasMore"].should be_falsey
-      response["nextRef"].should be_nil
-      response["totalResults"].should eq(2)
+      response.body["hasMore"].should be_falsey
+      response.body["nextRef"].should be_nil
+      response.body["totalResults"].should eq(2)
   end
 
   
@@ -190,10 +190,9 @@ describe SiftPartner::Client do
       response = partner_client.update_notification_config(cfg)
       response.should_not be_nil
       epsilon = 1e-6
-      response["http_notification_url"].should eq(cfg["http_notification_url"])
-      response["http_notification_threshold"].should < cfg["http_notification_threshold"] + epsilon
-      response["http_notification_threshold"].should > cfg["http_notification_threshold"] - epsilon
-
+      response.body["http_notification_url"].should eq(cfg["http_notification_url"])
+      response.body["http_notification_threshold"].should < cfg["http_notification_threshold"] + epsilon
+      response.body["http_notification_threshold"].should > cfg["http_notification_threshold"] - epsilon
   end
 
 end
