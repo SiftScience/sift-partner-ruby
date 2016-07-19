@@ -39,8 +39,7 @@ module SiftPartner
     # password
     #    password (at least 10 chars) to be used to sign into the Console
     #
-    # When successful, returns a including the new account id and credentials.
-    # When an error occurs, returns nil.
+    # Returns a Sift::Response object (see https://github.com/SiftScience/sift-ruby)
     def new_account(site_url, site_email, analyst_email, password)
 
       raise("site url must be a non-empty string") unless valid_string?(site_url)
@@ -63,11 +62,12 @@ module SiftPartner
     # been created by this partner. This will return up to 100 results
     # at a time.
     #
-    # When successful, returns a hash including the key :data, which is an
-    # array of account descriptions. (Each element has the same structure as a
-    # single response from new_account).  If the key :has_more is true, then
-    # pass the :next_ref value into this function again to get the next set
-    # of results.
+    # Returns a Sift::Response object (see https://github.com/SiftScience/sift-ruby)
+    # When successful, the response body is a hash including the key :data,
+    # which is an array of account descriptions. (Each element has the same
+    # structure as a single response from new_account.)  If
+    # the key :has_more is true, then pass the :next_ref value into this
+    # function again to get the next set of results.
     def get_accounts(next_ref = nil)
       http_get(next_ref ? next_ref : accounts_url)
     end
@@ -80,7 +80,7 @@ module SiftPartner
     #   A Hash, with keys :http_notification_url and :http_notification_threshold
     #   The value of the notification_url will be a url containing the string '%s' exactly once.
     #   This allows the url to be used as a template, into which a merchant account id can be substituted.
-    #   The  notification threshold should be a floating point number between 0.0 and 1.0
+    #   The notification threshold should be a floating point number between 0.0 and 1.0
     def update_notification_config(cfg = nil)
 
       raise("configuration must be a hash") unless cfg.is_a? Hash
@@ -101,18 +101,12 @@ module SiftPartner
         URI("#{API_ENDPOINT}/accounts/#{@id}/config")
       end
 
-      def safe_json(http_response)
+      def sift_response(http_response)
         response = Sift::Response.new(
           http_response.body,
           http_response.code,
           http_response.response
         )
-        if !response.nil? and response.ok?
-          response.json
-        else
-          puts "bad value in safeJson :"
-          PP.pp(response)
-        end
       end
 
       def prep_https(uri)
@@ -126,7 +120,7 @@ module SiftPartner
                     "User-Agent" => user_agent}
 
         http_response = HTTParty.get(uri, :headers =>header)
-        safe_json(http_response)
+        sift_response(http_response)
       end
 
       def http_put(uri, bodyObj)
@@ -135,7 +129,7 @@ module SiftPartner
                   "User-Agent" => user_agent}
 
         http_response = HTTParty.put(uri, :body => bodyObj.to_json, :headers => header)
-        safe_json(http_response)
+        sift_response(http_response)
       end
 
       def http_post(uri, bodyObj)
@@ -143,7 +137,7 @@ module SiftPartner
                   "Authorization" => "Basic #{@api_key}",
                   "User-Agent" => user_agent}
         http_response = HTTParty.post(uri, :body => bodyObj.to_json, :headers => header)
-        safe_json(http_response)
+        sift_response(http_response)
       end
 
       def valid_string?(s)

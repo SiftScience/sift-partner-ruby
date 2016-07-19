@@ -31,12 +31,16 @@ Alternatively, you can install the gem from Rubyforge:
     partner_client = SiftPartner::Client.new(partner_api_key, partner_acct_id)
 
     # create a new account for a given merchant
-    merchant_account = partner_client.new_account(
+    merchant_account_response = partner_client.new_account(
       "merchantsite.com", # the url for the merchant's site
       "shopowner@merchantsite.com", # an email belonging to the merchant
       "johndoe@merchantsite.com", # an email used to log in to Sift
       "s0m3l0ngp455w0rd" # password associated with that log in
     )
+
+    merchant_account_response.ok?  # returns true or false
+    merchant_account_response.body  # API response body
+    merchant_account_response.http_status_code  # HTTP response code, 200 is ok.
 
     # get a listing of all your accounts
     all_accounts = partner_client.get_accounts
